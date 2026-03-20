@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>財務現況指南</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            position: relative;
+        }
+        .container {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+            box-sizing: border-box;
+            position: relative;
+        }
+        .main-title {
+            text-align: center;
+            color: #1a1a1a;
+            font-size: 24px;
+            margin-top: 0;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        h2 {
+            font-size: 20px;
+            margin-top: 0;
+            color: #333;
+            line-height: 1.5;
+        }
+        .progress-bar {
+            background-color: #e9ecef;
+            border-radius: 8px;
+            height: 8px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+        .progress {
+            background-color: #0056b3; /* 改為更沉穩專業的藍色調 */
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .option-btn {
+            display: block;
+            width: 100%;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #333;
+        }
+        .option-btn:hover {
+            background-color: #e6f2ff;
+            border-color: #0056b3;
+            color: #0056b3;
+        }
+        #result-section {
+            display: none;
+        }
+        .result-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .score-details {
+            background-color: #f1f3f5;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 15px;
+        }
+        .score-details strong {
+            color: #333;
+        }
+        .veto-warning {
+            color: #d32f2f;
+            margin-top: 8px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .result-desc {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        .result-allocation {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #0056b3;
+            margin-bottom: 30px;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: center;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        .btn-primary {
+            background-color: #0056b3;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background-color: #004494;
+        }
+        .btn-secondary {
+            background-color: #e9ecef;
+            color: #333;
+        }
+        .btn-secondary:hover {
+            background-color: #ced4da;
+        }
+        .confidential-note {
+            text-align: right;
+            font-size: 12px;
+            color: #888;
+            margin-top: 30px;
+            border-top: 1px dashed #eee;
+            padding-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="capture-area">
+    <h1 class="main-title">財務現況指南</h1>
+
+    <div id="quiz-section">
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
+        <div id="question-text"></div>
+        <div id="options-container"></div>
+    </div>
+
+    <div id="result-section">
+        <div class="result-title" id="result-title"></div>
+        
+        <div class="score-details" id="score-details">
+            <div><strong>系統綜合評分：</strong> <span id="final-score"></span> / 42 分</div>
+            <div id="veto-status" class="veto-warning" style="display: none;"></div>
+        </div>
+
+        <div class="result-desc" id="result-desc"></div>
+        <div class="result-allocation" id="result-allocation"></div>
+        
+        <div class="action-buttons" id="action-buttons">
+            <button class="btn btn-primary" onclick="downloadScreenshot()">📥 儲存結果 (截圖)</button>
+            <button class="btn btn-secondary" onclick="location.reload()">↺ 重新評估</button>
+        </div>
+    </div>
+
+    <div class="confidential-note">
+        🔒 您的作答將作絕對保密處理，僅供專屬財務規劃之用，請放心作答。
+    </div>
+</div>
+
+<script>
+    const questions = [
+        { q: "1. 請問您目前的年齡階段是？", options: [{t: "(A) 30歲以下", s: 3}, {t: "(B) 30至50歲", s: 2}, {t: "(C) 50歲以上", s: 1}] },
+        { q: "2. 您目前的家庭財務責任分佈為？", options: [{t: "(A) 需主力供養父母或子女", s: 2}, {t: "(B) 主要負責個人開銷", s: 3}, {t: "(C) 已準備或進入退休階段", s: 1}] },
+        { q: "3. 關於本次計畫配置的資金，您預計的投資年期是？", options: [{t: "(A) 10年以上", s: 3}, {t: "(B) 3至5年", s: 2}, {t: "(C) 視乎情況，隨時可能需要靈活調動", s: 0, veto: true}] },
+        { q: "4. 評估您目前的每月現金流，大致屬於以下哪一種？", options: [{t: "(A) 每月有固定且充裕的結餘", s: 3}, {t: "(B) 收支大致平衡", s: 2}, {t: "(C) 結餘較少，偶有需要動用儲蓄", s: 0, veto: true}] },
+        { q: "5. 您目前的收入結構偏向？", options: [{t: "(A) 相對穩定的固定薪金", s: 3}, {t: "(B) 部分固定，部分浮動", s: 2}, {t: "(C) 隨市場環境波動較大", s: 1}] },
+        { q: "6. 您目前的債務狀況是？", options: [{t: "(A) 無負債，或僅有極低息貸款", s: 3}, {t: "(B) 有常規中等水平負債", s: 2}, {t: "(C) 帶有較高息的負債", s: 0, veto: true}] },
+        { q: "7. 若檢視您目前的整體資產，分佈最接近以下哪種情況？", options: [{t: "(A) 股票或高波動投資佔總資產一半以上", s: 1}, {t: "(B) 絕大部份為銀行存款或現金", s: 3}, {t: "(C) 已有股債平衡配置，且具備基本保障", s: 2}, {t: "(D) 大部分資金鎖定於實物房地產", s: 3}] },
+        { q: "8. 假設遇到突發醫療或意外情況，會否影響到您這筆投資資金？", options: [{t: "(A) 不會，已有充足的緊急備用金或保險", s: 3}, {t: "(B) 有機會需要部分提取", s: 2}, {t: "(C) 很大機會需要完全中斷投資來應急", s: 0, veto: true}] },
+        { q: "9. 您過往參與市場投資（如基金、股票）的經驗是？", options: [{t: "(A) 較少接觸，以儲蓄為主", s: 2}, {t: "(B) 有一定經驗，偶爾參與市場", s: 1}, {t: "(C) 經驗豐富，有清晰的配置策略", s: 3}] },
+        { q: "10. 假設由於宏觀經濟波動，您的組合暫時下跌了15%，您的實際操作傾向是？", options: [{t: "(A) 視為入市機會，考慮增加投資", s: 3}, {t: "(B) 理解為市場正常週期，繼續持有", s: 2}, {t: "(C) 感到擔憂，傾向減持或套現以控制風險", s: 1, downgrade: true}] },
+        { q: "11. 假設您的長期計畫每年穩健增長5%，同期朋友投資熱門項目獲利30%，您會？", options: [{t: "(A) 堅持自己原有的長期計畫", s: 3}, {t: "(B) 考慮將部分資金轉移，嘗試跟隨熱點", s: 2}, {t: "(C) 傾向調整現有組合，期望獲取同等高回報", s: 1}] },
+        { q: "12. 您本次投資最核心的財務目標是？", options: [{t: "(A) 追求最大化的資本增值", s: 3}, {t: "(B) 建立持續且穩定的現金流/派息", s: 2}, {t: "(C) 確保抗通脹及資產購買力保值", s: 1}] },
+        { q: "13. 若一項資產保證「本金數字」不變，但10年後實際購買力因通脹下降20%，您會？", options: [{t: "(A) 可以接受，首要條件是本金數字不跌", s: 1}, {t: "(B) 傾向尋求回報率能跑贏通脹的方案，並願意承受波動", s: 3}] },
+        { q: "14. 您對於資產地區分佈與貨幣的偏好是？", options: [{t: "(A) 傾向環球市場配置，並接受外幣波動", s: 3}, {t: "(B) 傾向專注亞洲或中港市場", s: 2}, {t: "(C) 偏好持有單一本地貨幣", s: 1}] },
+        { q: "15. （選答）您是否看重投資資產能與個人/公司債務做到法律上的相對隔離？", options: [{t: "(A) 非常看重，需要確保資產的專屬性與安全性", s: 0}, {t: "(B) 一般，目前未有相關考量", s: 0}] }
+    ];
+
+    let currentStep = 0;
+    let totalScore = 0;
+    let isVetoed = false;
+    let isDowngraded = false;
+
+    const quizSection = document.getElementById('quiz-section');
+    const resultSection = document.getElementById('result-section');
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const progress = document.getElementById('progress');
+
+    function renderQuestion() {
+        if (currentStep >= questions.length) {
+            showResult();
+            return;
+        }
+
+        const q = questions[currentStep];
+        questionText.innerHTML = `<h2>${q.q}</h2>`;
+        optionsContainer.innerHTML = '';
+
+        q.options.forEach((opt) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt.t;
+            btn.onclick = () => handleAnswer(opt);
+            optionsContainer.appendChild(btn);
+        });
+
+        progress.style.width = `${((currentStep) / questions.length) * 100}%`;
+    }
+
+    function handleAnswer(option) {
+        totalScore += option.s;
+        if (option.veto) isVetoed = true;
+        if (option.downgrade) isDowngraded = true;
+        
+        currentStep++;
+        renderQuestion();
+    }
+
+    function showResult() {
+        quizSection.style.display = 'none';
+        resultSection.style.display = 'block';
+        
+        document.getElementById('final-score').innerText = totalScore;
+        const vetoStatusElement = document.getElementById('veto-status');
+
+        let resultType = '';
+        let resultColor = '';
+        let resultDescText = '';
+        let allocationText = '';
+
+        if (isVetoed) {
+            resultType = '🔵 防守型配置 (Conservative)';
+            resultColor = '#1976d2';
+            vetoStatusElement.innerText = "※ 觸發安全邊界：根據您的客觀條件（如現金流或資金年期），系統已自動將風險等級調整為防禦優先。";
+            vetoStatusElement.style.display = "block";
+            resultDescText = '防禦優先。系統數據顯示，目前的流動性需求不適合承受長期虧損。當前財務重心應放在抗通脹與資產保值，並建議優先檢視現有醫療及意外保障是否足夠，築起財務防火牆。';
+            allocationText = '<strong>建議資產比例：</strong><br>• 股票/權益類資產：10% - 30%<br>• 債券/固定收益及現金等價物：70% - 90%';
+        } else if (isDowngraded || totalScore < 32) {
+            resultType = '🟡 平衡型配置 (Moderate)';
+            resultColor = '#f57c00';
+            if (isDowngraded) {
+                vetoStatusElement.innerText = "※ 行為評估調整：基於對市場波動的承受意願，系統建議採取更為平衡的策略。";
+                vetoStatusElement.style.display = "block";
+            }
+            resultDescText = '攻守兼備。平衡了家庭負擔與增值需求。由於需預留一定緩衝空間，或對短期波動較為敏感，策略上建議透過派息型基金或投資級別債券來提供現金流，安撫市場波動帶來的壓力。';
+            allocationText = '<strong>建議資產比例：</strong><br>• 股票/權益類資產：40% - 60%<br>• 債券/固定收益資產：40% - 60%';
+        } else {
+            resultType = '🟢 進取型配置 (Aggressive)';
+            resultColor = '#388e3c';
+            resultDescText = '資本最大化增值。具備堅實的防守底氣（穩定現金流、充足保障）與長期閒置資金，擁有較高的市場容錯率。有條件利用時間紅利，核心配置於環球及高增長資產。';
+            allocationText = '<strong>建議資產比例：</strong><br>• 股票/權益類資產：70% - 80%<br>• 債券/固定收益資產：20% - 30%';
+        }
+
+        document.getElementById('result-title').innerText = resultType;
+        document.getElementById('result-title').style.color = resultColor;
+        document.getElementById('result-desc').innerText = resultDescText;
+        document.getElementById('result-allocation').innerHTML = allocationText;
+        document.getElementById('result-allocation').style.borderLeftColor = resultColor;
+    }
+
+    // 截圖下載功能
+    function downloadScreenshot() {
+        const captureArea = document.getElementById('capture-area');
+        const buttons = document.getElementById('action-buttons');
+        
+        // 截圖前暫時隱藏操作按鈕，讓圖片更乾淨
+        buttons.style.display = 'none';
+        
+        html2canvas(captureArea, {
+            scale: 2, // 提高截圖清晰度
+            backgroundColor: "#ffffff"
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = '專屬財務健康導航_結果.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            
+            // 截圖後恢復按鈕顯示
+            buttons.style.display = 'flex';
+        });
+    }
+
+    // 初始化第一題
+    renderQuestion();
+</script>
+
+</body>
+</html>
