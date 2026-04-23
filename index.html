@@ -3,317 +3,511 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>財務現況指南</title>
+    <title>Vanguard 資產配置與風險評估</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- html2canvas for screenshot functionality -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        vanguard: '#9B26B6', // A professional deep purple/blue tone
+                        primary: '#1E3A8A', // Deep blue
+                        secondary: '#10B981', // Emerald green for bonds/safe
+                    }
+                }
+            }
+        }
+    </script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f4f6f8;
-            color: #333;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            position: relative;
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #F3F4F6;
+            color: #1F2937;
         }
-        .container {
-            background-color: #fff;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-            max-width: 600px;
-            width: 100%;
-            padding: 40px;
-            box-sizing: border-box;
-            position: relative;
+        .fade-in {
+            animation: fadeIn 0.4s ease-in-out;
         }
-        .main-title {
-            text-align: center;
-            color: #1a1a1a;
-            font-size: 24px;
-            margin-top: 0;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        h2 {
-            font-size: 20px;
-            margin-top: 0;
-            color: #333;
-            line-height: 1.5;
-        }
-        .progress-bar {
-            background-color: #e9ecef;
-            border-radius: 8px;
-            height: 8px;
-            margin-bottom: 25px;
-            overflow: hidden;
-        }
-        .progress {
-            background-color: #0056b3; /* 改為更沉穩專業的藍色調 */
-            height: 100%;
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-        .option-btn {
-            display: block;
-            width: 100%;
-            padding: 16px 20px;
-            margin-bottom: 12px;
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            font-size: 16px;
-            text-align: left;
-            cursor: pointer;
+        .option-card {
             transition: all 0.2s ease;
-            color: #333;
         }
-        .option-btn:hover {
-            background-color: #e6f2ff;
-            border-color: #0056b3;
-            color: #0056b3;
+        .option-card:hover {
+            border-color: #1E3A8A;
+            background-color: #EFF6FF;
         }
-        #result-section {
+        .option-card.selected {
+            border-color: #1E3A8A;
+            background-color: #DBEAFE;
+            box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2);
+        }
+        /* Hide scrollbar for clean capture */
+        .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
-        .result-title {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 20px;
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
-        .score-details {
-            background-color: #f1f3f5;
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 15px;
-        }
-        .score-details strong {
-            color: #333;
-        }
-        .veto-warning {
-            color: #d32f2f;
-            margin-top: 8px;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        .result-desc {
-            font-size: 16px;
-            line-height: 1.6;
-            color: #555;
-            margin-bottom: 20px;
-        }
-        .result-allocation {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid #0056b3;
-            margin-bottom: 30px;
-        }
-        .action-buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-        }
-        .btn {
-            flex: 1;
-            padding: 14px;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-            text-align: center;
-            font-weight: bold;
-            transition: background-color 0.2s;
-        }
-        .btn-primary {
-            background-color: #0056b3;
-            color: #fff;
-        }
-        .btn-primary:hover {
-            background-color: #004494;
-        }
-        .btn-secondary {
-            background-color: #e9ecef;
-            color: #333;
-        }
-        .btn-secondary:hover {
-            background-color: #ced4da;
-        }
-        .confidential-note {
-            text-align: right;
-            font-size: 12px;
-            color: #888;
-            margin-top: 30px;
-            border-top: 1px dashed #eee;
-            padding-top: 15px;
+        .pie-chart {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: conic-gradient(#1E3A8A 0% var(--stock-pct), #10B981 var(--stock-pct) 100%);
+            display: inline-block;
         }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-8">
 
-<div class="container" id="capture-area">
-    <h1 class="main-title">財務現況指南</h1>
-
-    <div id="quiz-section">
-        <div class="progress-bar">
-            <div class="progress" id="progress"></div>
-        </div>
-        <div id="question-text"></div>
-        <div id="options-container"></div>
-    </div>
-
-    <div id="result-section">
-        <div class="result-title" id="result-title"></div>
+    <!-- Main Container -->
+    <div id="app-container" class="w-full max-w-3xl bg-white rounded-2xl shadow-xl overflow-hidden relative min-h-[600px] flex flex-col">
         
-        <div class="score-details" id="score-details">
-            <div><strong>系統綜合評分：</strong> <span id="final-score"></span> / 42 分</div>
-            <div id="veto-status" class="veto-warning" style="display: none;"></div>
-        </div>
+        <!-- Header -->
+        <header class="bg-primary text-white p-6 text-center shrink-0">
+            <h1 class="text-2xl sm:text-3xl font-bold tracking-wider">Vanguard 投資風險評估 <span class="text-lg sm:text-xl font-medium text-blue-200 tracking-normal ml-2">By 文仔</span></h1>
+            <p class="text-blue-200 mt-2 text-sm sm:text-base">Asset Allocation & Risk Tolerance Questionnaire</p>
+        </header>
 
-        <div class="result-desc" id="result-desc"></div>
-        <div class="result-allocation" id="result-allocation"></div>
-        
-        <div class="action-buttons" id="action-buttons">
-            <button class="btn btn-primary" onclick="downloadScreenshot()">📥 儲存結果 (截圖)</button>
-            <button class="btn btn-secondary" onclick="location.reload()">↺ 重新評估</button>
-        </div>
-    </div>
-
-    <div class="confidential-note">
-        🔒 您的作答將作絕對保密處理，僅供專屬財務規劃之用，請放心作答。
-    </div>
-</div>
-
-<script>
-    const questions = [
-        { q: "1. 請問您目前的年齡階段是？", options: [{t: "(A) 30歲以下", s: 3}, {t: "(B) 30至50歲", s: 2}, {t: "(C) 50歲以上", s: 1}] },
-        { q: "2. 您目前的家庭財務責任分佈為？", options: [{t: "(A) 需主力供養父母或子女", s: 2}, {t: "(B) 主要負責個人開銷", s: 3}, {t: "(C) 已準備或進入退休階段", s: 1}] },
-        { q: "3. 關於本次計畫配置的資金，您預計的投資年期是？", options: [{t: "(A) 10年以上", s: 3}, {t: "(B) 3至5年", s: 2}, {t: "(C) 視乎情況，隨時可能需要靈活調動", s: 0, veto: true}] },
-        { q: "4. 評估您目前的每月現金流，大致屬於以下哪一種？", options: [{t: "(A) 每月有固定且充裕的結餘", s: 3}, {t: "(B) 收支大致平衡", s: 2}, {t: "(C) 結餘較少，偶有需要動用儲蓄", s: 0, veto: true}] },
-        { q: "5. 您目前的收入結構偏向？", options: [{t: "(A) 相對穩定的固定薪金", s: 3}, {t: "(B) 部分固定，部分浮動", s: 2}, {t: "(C) 隨市場環境波動較大", s: 1}] },
-        { q: "6. 您目前的債務狀況是？", options: [{t: "(A) 無負債，或僅有極低息貸款", s: 3}, {t: "(B) 有常規中等水平負債", s: 2}, {t: "(C) 帶有較高息的負債", s: 0, veto: true}] },
-        { q: "7. 若檢視您目前的整體資產，分佈最接近以下哪種情況？", options: [{t: "(A) 股票或高波動投資佔總資產一半以上", s: 1}, {t: "(B) 絕大部份為銀行存款或現金", s: 3}, {t: "(C) 已有股債平衡配置，且具備基本保障", s: 2}, {t: "(D) 大部分資金鎖定於實物房地產", s: 3}] },
-        { q: "8. 假設遇到突發醫療或意外情況，會否影響到您這筆投資資金？", options: [{t: "(A) 不會，已有充足的緊急備用金或保險", s: 3}, {t: "(B) 有機會需要部分提取", s: 2}, {t: "(C) 很大機會需要完全中斷投資來應急", s: 0, veto: true}] },
-        { q: "9. 您過往參與市場投資（如基金、股票）的經驗是？", options: [{t: "(A) 較少接觸，以儲蓄為主", s: 2}, {t: "(B) 有一定經驗，偶爾參與市場", s: 1}, {t: "(C) 經驗豐富，有清晰的配置策略", s: 3}] },
-        { q: "10. 假設由於宏觀經濟波動，您的組合暫時下跌了15%，您的實際操作傾向是？", options: [{t: "(A) 視為入市機會，考慮增加投資", s: 3}, {t: "(B) 理解為市場正常週期，繼續持有", s: 2}, {t: "(C) 感到擔憂，傾向減持或套現以控制風險", s: 1, downgrade: true}] },
-        { q: "11. 假設您的長期計畫每年穩健增長5%，同期朋友投資熱門項目獲利30%，您會？", options: [{t: "(A) 堅持自己原有的長期計畫", s: 3}, {t: "(B) 考慮將部分資金轉移，嘗試跟隨熱點", s: 2}, {t: "(C) 傾向調整現有組合，期望獲取同等高回報", s: 1}] },
-        { q: "12. 您本次投資最核心的財務目標是？", options: [{t: "(A) 追求最大化的資本增值", s: 3}, {t: "(B) 建立持續且穩定的現金流/派息", s: 2}, {t: "(C) 確保抗通脹及資產購買力保值", s: 1}] },
-        { q: "13. 若一項資產保證「本金數字」不變，但10年後實際購買力因通脹下降20%，您會？", options: [{t: "(A) 可以接受，首要條件是本金數字不跌", s: 1}, {t: "(B) 傾向尋求回報率能跑贏通脹的方案，並願意承受波動", s: 3}] },
-        { q: "14. 您對於資產地區分佈與貨幣的偏好是？", options: [{t: "(A) 傾向環球市場配置，並接受外幣波動", s: 3}, {t: "(B) 傾向專注亞洲或中港市場", s: 2}, {t: "(C) 偏好持有單一本地貨幣", s: 1}] },
-        { q: "15. （選答）您是否看重投資資產能與個人/公司債務做到法律上的相對隔離？", options: [{t: "(A) 非常看重，需要確保資產的專屬性與安全性", s: 0}, {t: "(B) 一般，目前未有相關考量", s: 0}] }
-    ];
-
-    let currentStep = 0;
-    let totalScore = 0;
-    let isVetoed = false;
-    let isDowngraded = false;
-
-    const quizSection = document.getElementById('quiz-section');
-    const resultSection = document.getElementById('result-section');
-    const questionText = document.getElementById('question-text');
-    const optionsContainer = document.getElementById('options-container');
-    const progress = document.getElementById('progress');
-
-    function renderQuestion() {
-        if (currentStep >= questions.length) {
-            showResult();
-            return;
-        }
-
-        const q = questions[currentStep];
-        questionText.innerHTML = `<h2>${q.q}</h2>`;
-        optionsContainer.innerHTML = '';
-
-        q.options.forEach((opt) => {
-            const btn = document.createElement('button');
-            btn.className = 'option-btn';
-            btn.innerText = opt.t;
-            btn.onclick = () => handleAnswer(opt);
-            optionsContainer.appendChild(btn);
-        });
-
-        progress.style.width = `${((currentStep) / questions.length) * 100}%`;
-    }
-
-    function handleAnswer(option) {
-        totalScore += option.s;
-        if (option.veto) isVetoed = true;
-        if (option.downgrade) isDowngraded = true;
-        
-        currentStep++;
-        renderQuestion();
-    }
-
-    function showResult() {
-        quizSection.style.display = 'none';
-        resultSection.style.display = 'block';
-        
-        document.getElementById('final-score').innerText = totalScore;
-        const vetoStatusElement = document.getElementById('veto-status');
-
-        let resultType = '';
-        let resultColor = '';
-        let resultDescText = '';
-        let allocationText = '';
-
-        if (isVetoed) {
-            resultType = '🔵 防守型配置 (Conservative)';
-            resultColor = '#1976d2';
-            vetoStatusElement.innerText = "※ 觸發安全邊界：根據您的客觀條件（如現金流或資金年期），系統已自動將風險等級調整為防禦優先。";
-            vetoStatusElement.style.display = "block";
-            resultDescText = '防禦優先。系統數據顯示，目前的流動性需求不適合承受長期虧損。當前財務重心應放在抗通脹與資產保值，並建議優先檢視現有醫療及意外保障是否足夠，築起財務防火牆。';
-            allocationText = '<strong>建議資產比例：</strong><br>• 股票/權益類資產：10% - 30%<br>• 債券/固定收益及現金等價物：70% - 90%';
-        } else if (isDowngraded || totalScore < 32) {
-            resultType = '🟡 平衡型配置 (Moderate)';
-            resultColor = '#f57c00';
-            if (isDowngraded) {
-                vetoStatusElement.innerText = "※ 行為評估調整：基於對市場波動的承受意願，系統建議採取更為平衡的策略。";
-                vetoStatusElement.style.display = "block";
-            }
-            resultDescText = '攻守兼備。平衡了家庭負擔與增值需求。由於需預留一定緩衝空間，或對短期波動較為敏感，策略上建議透過派息型基金或投資級別債券來提供現金流，安撫市場波動帶來的壓力。';
-            allocationText = '<strong>建議資產比例：</strong><br>• 股票/權益類資產：40% - 60%<br>• 債券/固定收益資產：40% - 60%';
-        } else {
-            resultType = '🟢 進取型配置 (Aggressive)';
-            resultColor = '#388e3c';
-            resultDescText = '資本最大化增值。具備堅實的防守底氣（穩定現金流、充足保障）與長期閒置資金，擁有較高的市場容錯率。有條件利用時間紅利，核心配置於環球及高增長資產。';
-            allocationText = '<strong>建議資產比例：</strong><br>• 股票/權益類資產：70% - 80%<br>• 債券/固定收益資產：20% - 30%';
-        }
-
-        document.getElementById('result-title').innerText = resultType;
-        document.getElementById('result-title').style.color = resultColor;
-        document.getElementById('result-desc').innerText = resultDescText;
-        document.getElementById('result-allocation').innerHTML = allocationText;
-        document.getElementById('result-allocation').style.borderLeftColor = resultColor;
-    }
-
-    // 截圖下載功能
-    function downloadScreenshot() {
-        const captureArea = document.getElementById('capture-area');
-        const buttons = document.getElementById('action-buttons');
-        
-        // 截圖前暫時隱藏操作按鈕，讓圖片更乾淨
-        buttons.style.display = 'none';
-        
-        html2canvas(captureArea, {
-            scale: 2, // 提高截圖清晰度
-            backgroundColor: "#ffffff"
-        }).then(canvas => {
-            const link = document.createElement('a');
-            link.download = '專屬財務健康導航_結果.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
+        <!-- SCREEN 1: Intro -->
+        <div id="intro-screen" class="p-6 sm:p-10 flex-grow flex flex-col justify-center fade-in">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 border-l-4 border-primary pl-3">歡迎使用國際權威評估模型</h2>
+            <p class="text-gray-600 mb-4 leading-relaxed">
+                本問卷採用全球領先資產管理機構 <strong>Vanguard (先鋒領航)</strong> 的官方評估邏輯。透過 11 條精心設計的問題，我們能精準分析你的 <strong>Time Horizon (投資年期)</strong> 與 <strong>Risk Tolerance (風險承受能力)</strong>。
+            </p>
+            <p class="text-gray-600 mb-6 leading-relaxed">
+                分析結果將作為你未來進行資產配置（如基金、儲蓄或退休規劃）的重要科學依據。
+            </p>
             
-            // 截圖後恢復按鈕顯示
-            buttons.style.display = 'flex';
-        });
-    }
+            <div class="bg-blue-50 rounded-lg p-4 mb-8 flex items-start">
+                <i class="fas fa-shield-alt text-primary mt-1 mr-3 text-lg"></i>
+                <div class="text-sm text-gray-700">
+                    <strong>隱私保密聲明：</strong> 本評估過程中的所有資料僅供本次專業諮詢及制定個人化財務方案之用，絕對保密，不會上傳至任何第三方伺服器。
+                </div>
+            </div>
 
-    // 初始化第一題
-    renderQuestion();
-</script>
+            <button onclick="startAssessment()" class="w-full bg-primary hover:bg-blue-800 text-white font-bold py-4 px-8 rounded-xl transition duration-300 text-lg shadow-md flex justify-center items-center">
+                開始評估 <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+        </div>
 
+        <!-- SCREEN 2: Question Area -->
+        <div id="question-screen" class="hidden flex-col h-full fade-in flex-grow">
+            <!-- Progress Bar -->
+            <div class="w-full bg-gray-200 h-2">
+                <div id="progress-bar" class="bg-primary h-2 transition-all duration-300" style="width: 0%"></div>
+            </div>
+            
+            <div class="p-6 sm:p-10 flex-grow flex flex-col">
+                <div class="flex justify-between items-center mb-6 text-sm text-gray-500 font-medium">
+                    <span id="section-title" class="uppercase tracking-wider text-primary">第一部分：投資時間表</span>
+                    <span id="question-counter">題 1 / 11</span>
+                </div>
+                
+                <h3 id="question-text" class="text-xl sm:text-2xl font-bold text-gray-800 mb-6 leading-tight"></h3>
+                
+                <div id="options-container" class="space-y-3 flex-grow no-scrollbar overflow-y-auto pb-4">
+                    <!-- Options injected via JS -->
+                </div>
+
+                <!-- Navigation Controls -->
+                <div class="flex justify-between mt-6 pt-4 border-t border-gray-100 shrink-0">
+                    <button onclick="prevQuestion()" id="prev-btn" class="px-6 py-3 rounded-lg font-medium text-gray-600 hover:bg-gray-100 transition hidden">
+                        <i class="fas fa-arrow-left mr-2"></i> 上一題
+                    </button>
+                    <button onclick="nextQuestion()" id="next-btn" class="px-6 py-3 rounded-lg font-medium bg-primary text-white hover:bg-blue-800 transition ml-auto disabled:opacity-50 disabled:cursor-not-allowed">
+                        下一題 <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 3: Result & Summary (Capture Area) -->
+        <div id="result-screen" class="hidden flex-col h-full bg-gray-50 overflow-y-auto no-scrollbar fade-in">
+            
+            <!-- This div is what will be captured in the screenshot -->
+            <div id="capture-area" class="p-6 sm:p-10 bg-white">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">你的專屬資產配置報告</h2>
+                    <p class="text-gray-500">基於 Vanguard 評估模型分析</p>
+                </div>
+
+                <!-- Score and Profile Banner -->
+                <div class="bg-gray-50 border border-gray-200 rounded-2xl p-6 mb-8 text-center shadow-sm">
+                    <p class="text-sm text-gray-500 uppercase tracking-wider mb-1">評估總分</p>
+                    <p class="text-4xl font-black text-primary mb-4"><span id="final-score">0</span> <span class="text-lg text-gray-500 font-medium">/ 90</span></p>
+                    <p class="text-sm text-gray-500 uppercase tracking-wider mb-1">你的投資風格</p>
+                    <h3 id="profile-name" class="text-2xl sm:text-3xl font-bold text-gray-800">載入中...</h3>
+                    <p id="profile-desc" class="text-gray-600 mt-2 font-medium">載入中...</p>
+                </div>
+
+                <!-- Asset Allocation Recommendation -->
+                <div class="bg-white border border-gray-200 rounded-2xl p-6 mb-8 shadow-sm flex flex-col sm:flex-row items-center justify-between">
+                    <div class="w-full sm:w-1/2 mb-6 sm:mb-0 text-center sm:text-left">
+                        <h4 class="text-lg font-bold text-gray-800 mb-4 border-l-4 border-primary pl-3">建議資產配置比例</h4>
+                        <div class="flex items-center mb-3">
+                            <div class="w-4 h-4 rounded-full bg-primary mr-3"></div>
+                            <span class="text-gray-700 w-24">股票 (Stocks)</span>
+                            <span id="pct-stocks" class="font-bold text-lg text-primary">0%</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-secondary mr-3"></div>
+                            <span class="text-gray-700 w-24">債券 (Bonds)</span>
+                            <span id="pct-bonds" class="font-bold text-lg text-secondary">0%</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-4">*註：債券部分可考慮以具備保證回報成分的保險（如分紅險、年金）作替代配置，以提供更穩定的現金流及防守性。</p>
+                    </div>
+                    <div class="w-full sm:w-1/2 flex justify-center">
+                        <!-- Dynamic Pie Chart -->
+                        <div id="allocation-chart" class="pie-chart shadow-md" style="--stock-pct: 50%;"></div>
+                    </div>
+                </div>
+
+                <!-- Q&A Summary -->
+                <div class="mt-8">
+                    <h4 class="text-lg font-bold text-gray-800 mb-4 border-l-4 border-primary pl-3">詳細作答紀錄</h4>
+                    <div id="summary-container" class="space-y-4 text-sm">
+                        <!-- Summary items injected via JS -->
+                    </div>
+                </div>
+                
+                <div class="mt-8 pt-4 border-t border-gray-200 text-center text-xs text-gray-400">
+                    <p>評估完成時間：<span id="completion-time"></span></p>
+                    <p>本報告由專業顧問系統生成，僅供內部參考。</p>
+                </div>
+            </div>
+
+            <!-- Action Buttons (Not included in screenshot) -->
+            <div class="p-6 bg-gray-50 flex justify-center gap-4 shrink-0 border-t border-gray-200">
+                <button onclick="location.reload()" class="px-6 py-3 rounded-lg font-medium text-gray-600 bg-white border border-gray-300 hover:bg-gray-100 transition shadow-sm">
+                    <i class="fas fa-redo mr-2"></i> 重新測試
+                </button>
+                <button onclick="takeScreenshot()" class="px-6 py-3 rounded-lg font-bold text-white bg-primary hover:bg-blue-800 transition shadow-md flex items-center">
+                    <i class="fas fa-camera mr-2"></i> 儲存報告圖片
+                </button>
+            </div>
+        </div>
+        
+        <!-- Loading Overlay for Screenshot -->
+        <div id="loading-overlay" class="absolute inset-0 bg-white bg-opacity-90 z-50 hidden flex-col items-center justify-center">
+            <i class="fas fa-spinner fa-spin text-4xl text-primary mb-4"></i>
+            <p class="text-gray-800 font-medium">正在為你生成圖片，請稍候...</p>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Data: 11 Questions based on Vanguard ---
+        const questions = [
+            // Part 1: Time Horizon
+            {
+                section: "第一部分：投資時間表 (Time Horizon)",
+                text: "1. 我計劃在幾年後開始從這個賬戶提取資金？",
+                options: [
+                    { text: "A. 3 年以內", score: 1 },
+                    { text: "B. 4 至 6 年", score: 3 },
+                    { text: "C. 7 至 10 年", score: 5 },
+                    { text: "D. 11 至 15 年", score: 8 },
+                    { text: "E. 15 年以上", score: 10 }
+                ]
+            },
+            {
+                section: "第一部分：投資時間表 (Time Horizon)",
+                text: "2. 當我開始提取資金時，我預計提取過程會持續多久？",
+                options: [
+                    { text: "A. 一次性提清", score: 1 },
+                    { text: "B. 2 至 5 年", score: 3 },
+                    { text: "C. 6 至 10 年", score: 5 },
+                    { text: "D. 11 至 15 年", score: 7 },
+                    { text: "E. 15 年以上", score: 10 }
+                ]
+            },
+            // Part 2: Risk Tolerance
+            {
+                section: "第二部分：風險承受能力 (Risk Tolerance)",
+                text: "3. 對我來說，投資最重要的是：",
+                options: [
+                    { text: "A. 確保本金安全，即使回報極低", score: 1 },
+                    { text: "B. 穩健增長，能接受小幅波動", score: 4 },
+                    { text: "C. 最大化長期增長，能忍受大幅波動", score: 7 }
+                ]
+            },
+            {
+                section: "第二部分：風險承受能力 (Risk Tolerance)",
+                text: "4. 我對股市和投資產品的了解程度是：",
+                options: [
+                    { text: "A. 完全不了解", score: 1 },
+                    { text: "B. 有基本認識，知道有波動", score: 3 },
+                    { text: "C. 非常了解，明白風險與回報的關係", score: 7 }
+                ]
+            },
+            {
+                section: "第二部分：風險承受能力 (Risk Tolerance)",
+                text: "5. 如果我的投資在一年內下跌了 20%，我會：",
+                options: [
+                    { text: "A. 全部賣出，轉為現金", score: 1 },
+                    { text: "B. 賣出一部分，轉向較安全的產品", score: 3 },
+                    { text: "C. 保持不動，等待回升", score: 5 },
+                    { text: "D. 趁低吸納，增加投資", score: 8 }
+                ]
+            },
+            {
+                section: "第二部分：風險承受能力 (Risk Tolerance)",
+                text: "6. 以下哪一個投資組合的年度波動範圍最令你感到舒適？",
+                options: [
+                    { text: "A. 組合 A：回報介乎 -2% 至 +5%", score: 1 },
+                    { text: "B. 組合 B：回報介乎 -7% 至 +12%", score: 4 },
+                    { text: "C. 組合 C：回報介乎 -15% 至 +25%", score: 7 },
+                    { text: "D. 組合 D：回報介乎 -25% 至 +40%", score: 10 }
+                ]
+            },
+            {
+                section: "第二部分：風險承受能力 (Risk Tolerance)",
+                text: "7. 在長期投資中，我更在意的通常是：",
+                options: [
+                    { text: "A. 我的賬戶價值跌了多少", score: 1 },
+                    { text: "B. 我的賬戶價值升了多少", score: 7 }
+                ]
+            },
+            {
+                section: "第二部分：風險承受能力 (Risk Tolerance)",
+                text: "8. 考慮到通脹（Inflation），我認為：",
+                options: [
+                    { text: "A. 即使回報追不上通脹，我也要保護本金", score: 1 },
+                    { text: "B. 我願意承受一定風險來超越通脹", score: 5 },
+                    { text: "C. 我必須追求遠超通脹的回報", score: 8 }
+                ]
+            },
+            {
+                section: "第二部分：風險承受能力 (Risk Tolerance)",
+                text: "9. 如果我有 $100,000 準備投資，我會選擇：",
+                options: [
+                    { text: "A. 放在銀行定期，保證有 $102,000", score: 1 },
+                    { text: "B. 50% 定期，50% 基金，預期回報較高但可能虧損", score: 4 },
+                    { text: "C. 100% 投資基金，追求最大潛力", score: 8 }
+                ]
+            },
+            {
+                section: "第二部分：風險承受能力 (Risk Tolerance)",
+                text: "10. 我如何看待「風險」這個詞？",
+                options: [
+                    { text: "A. 負面：代表「虧損」和「不安」", score: 1 },
+                    { text: "B. 中性：代表「不確定性」", score: 4 },
+                    { text: "C. 正面：代表「機會」和「獲利」", score: 8 }
+                ]
+            },
+            {
+                section: "第二部分：風險承受能力 (Risk Tolerance)",
+                text: "11. 我目前的財務狀況（收入、存款）是否能支持我在投資虧損時仍維持生活？",
+                options: [
+                    { text: "A. 不能，這筆錢很關鍵", score: 1 },
+                    { text: "B. 可以，我有其他儲蓄", score: 5 },
+                    { text: "C. 完全沒問題，我收入穩定且充裕", score: 8 }
+                ]
+            }
+        ];
+
+        // --- Profiles based on Vanguard ---
+        const profiles = [
+            { min: 11, max: 25, name: "Conservative (防守型)", desc: "極低波動，以保值及資本安全為主。", stocks: 20, bonds: 80 },
+            { min: 26, max: 40, name: "Moderately Conservative (穩健防守)", desc: "注重穩定收息，追求輕微的資本增長。", stocks: 40, bonds: 60 },
+            { min: 41, max: 55, name: "Moderate (平衡/中性)", desc: "股債平衡配置，旨在應對通脹及提供溫和增長。", stocks: 60, bonds: 40 },
+            { min: 56, max: 75, name: "Moderately Aggressive (穩健進攻)", desc: "積極追求增長，能承受較明顯的市場波動。", stocks: 80, bonds: 20 },
+            { min: 76, max: 90, name: "Aggressive (進攻型)", desc: "最大化長期資本增長，需具備極強的抗壓能力。", stocks: 100, bonds: 0 }
+        ];
+
+        // --- State ---
+        let currentQuestionIndex = 0;
+        let answers = new Array(questions.length).fill(null);
+
+        // --- UI Elements ---
+        const introScreen = document.getElementById('intro-screen');
+        const questionScreen = document.getElementById('question-screen');
+        const resultScreen = document.getElementById('result-screen');
+        
+        const qSection = document.getElementById('section-title');
+        const qCounter = document.getElementById('question-counter');
+        const qText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const progressBar = document.getElementById('progress-bar');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        // --- Functions ---
+        function startAssessment() {
+            introScreen.classList.add('hidden');
+            questionScreen.classList.remove('hidden');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const q = questions[currentQuestionIndex];
+            
+            // Update Text
+            qSection.textContent = q.section;
+            qCounter.textContent = `題 ${currentQuestionIndex + 1} / ${questions.length}`;
+            qText.textContent = q.text;
+            
+            // Update Progress
+            const progress = ((currentQuestionIndex) / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            // Render Options
+            optionsContainer.innerHTML = '';
+            q.options.forEach((opt, index) => {
+                const isSelected = answers[currentQuestionIndex] === index;
+                const btn = document.createElement('button');
+                btn.className = `option-card w-full text-left p-4 rounded-xl border-2 mb-3 ${isSelected ? 'selected' : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300'}`;
+                
+                // Content with radio circle visual
+                btn.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center mr-4 ${isSelected ? 'border-primary' : 'border-gray-300'} shrink-0">
+                            ${isSelected ? '<div class="w-2.5 h-2.5 rounded-full bg-primary"></div>' : ''}
+                        </div>
+                        <span class="font-medium text-[15px] leading-snug">${opt.text}</span>
+                    </div>
+                `;
+                
+                btn.onclick = () => selectOption(index);
+                optionsContainer.appendChild(btn);
+            });
+
+            // Update Navigation Buttons
+            prevBtn.classList.toggle('hidden', currentQuestionIndex === 0);
+            
+            if (answers[currentQuestionIndex] !== null) {
+                nextBtn.removeAttribute('disabled');
+                nextBtn.innerHTML = currentQuestionIndex === questions.length - 1 ? '查看結果 <i class="fas fa-flag-checkered ml-2"></i>' : '下一題 <i class="fas fa-arrow-right ml-2"></i>';
+            } else {
+                nextBtn.setAttribute('disabled', 'true');
+                nextBtn.innerHTML = '請先選擇 <i class="fas fa-arrow-right ml-2"></i>';
+            }
+        }
+
+        function selectOption(index) {
+            answers[currentQuestionIndex] = index;
+            renderQuestion();
+            // Optional: Auto advance after a short delay
+            // setTimeout(nextQuestion, 400); 
+        }
+
+        function nextQuestion() {
+            if (answers[currentQuestionIndex] === null) return;
+            
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion();
+            } else {
+                calculateResults();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+            }
+        }
+
+        function calculateResults() {
+            // Calculate total score
+            let totalScore = 0;
+            const summaryData = [];
+
+            answers.forEach((ansIndex, qIndex) => {
+                const q = questions[qIndex];
+                const selectedOpt = q.options[ansIndex];
+                totalScore += selectedOpt.score;
+                
+                summaryData.push({
+                    qNum: qIndex + 1,
+                    question: q.text,
+                    answer: selectedOpt.text,
+                    score: selectedOpt.score
+                });
+            });
+
+            // Find matching profile
+            const profile = profiles.find(p => totalScore >= p.min && totalScore <= p.max) || profiles[0];
+
+            // Render Results
+            document.getElementById('final-score').textContent = totalScore;
+            document.getElementById('profile-name').textContent = profile.name;
+            document.getElementById('profile-desc').textContent = profile.desc;
+            
+            document.getElementById('pct-stocks').textContent = `${profile.stocks}%`;
+            document.getElementById('pct-bonds').textContent = `${profile.bonds}%`;
+            
+            // Update Pie Chart CSS Variable
+            document.getElementById('allocation-chart').style.setProperty('--stock-pct', `${profile.stocks}%`);
+
+            // Generate Summary HTML
+            const summaryContainer = document.getElementById('summary-container');
+            summaryContainer.innerHTML = '';
+            summaryData.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "bg-gray-50 p-3 rounded-lg border border-gray-100";
+                div.innerHTML = `
+                    <p class="text-gray-700 font-bold mb-1">${item.question}</p>
+                    <div class="flex justify-between items-start">
+                        <p class="text-primary font-medium">答：${item.answer.substring(3)}</p>
+                        <span class="text-xs text-gray-400 bg-white px-2 py-1 rounded border shadow-sm shrink-0 ml-2">得分: ${item.score}</span>
+                    </div>
+                `;
+                summaryContainer.appendChild(div);
+            });
+
+            // Set current time
+            const now = new Date();
+            document.getElementById('completion-time').textContent = now.toLocaleString('zh-HK');
+
+            // Switch Screen
+            questionScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+        }
+
+        function takeScreenshot() {
+            const captureArea = document.getElementById('capture-area');
+            const loadingOverlay = document.getElementById('loading-overlay');
+            
+            loadingOverlay.classList.remove('hidden');
+            loadingOverlay.classList.add('flex');
+
+            // Add a small delay to ensure rendering is complete before capture
+            setTimeout(() => {
+                html2canvas(captureArea, {
+                    scale: 2, // High resolution
+                    useCORS: true,
+                    backgroundColor: '#ffffff'
+                }).then(canvas => {
+                    // Create download link
+                    const link = document.createElement('a');
+                    const timestamp = new Date().getTime();
+                    link.download = `Vanguard_風險評估報告_${timestamp}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    
+                    // Hide loading
+                    loadingOverlay.classList.add('hidden');
+                    loadingOverlay.classList.remove('flex');
+                }).catch(err => {
+                    console.error("Screenshot failed:", err);
+                    alert("生成圖片失敗，請重試。");
+                    loadingOverlay.classList.add('hidden');
+                    loadingOverlay.classList.remove('flex');
+                });
+            }, 500);
+        }
+    </script>
 </body>
 </html>
+
